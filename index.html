@@ -23,6 +23,8 @@ p.sub{color:var(--muted);margin:0 0 20px}
 .ladder span,.badge{flex:none;font-weight:700;font-size:.8rem;padding:2px 9px;border-radius:6px;color:#14161c;direction:ltr;display:inline-block}
 .t1{background:var(--t1)}.t2{background:var(--t2)}.t3{background:var(--t3)}.t4{background:var(--t4)}.t5{background:var(--t5)}
 .badge.lt{opacity:.72}
+.ic{width:18px;height:18px;image-rendering:pixelated;vertical-align:-4px;margin-inline-end:5px}
+.badge .ic{width:15px;height:15px;vertical-align:-3px;margin-inline-end:4px}
 .tabs{display:flex;gap:6px;overflow-x:auto;margin:20px 0 12px}
 .tabs button{flex:none;font:inherit;font-size:.9rem;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surf);color:var(--muted);cursor:pointer}
 .tabs button[aria-pressed="true"]{background:var(--acc);color:var(--accfg);border-color:var(--acc);font-weight:500}
@@ -83,13 +85,26 @@ let mode="all",q="";
 let queue=[];
 try{queue=JSON.parse(localStorage.getItem("tt-queue")||"[]")}catch(e){queue=[]}
 
-function badge(t){const s=document.createElement("span");s.className="badge t"+t[2]+(t[0]==="L"?" lt":"");s.textContent=t;return s}
+// أيقونات بكسل مرسومة بالكود (مو صور جاهزة)
+const ICONS={};
+function mk(fn){const c=document.createElement("canvas");c.width=c.height=16;const x=c.getContext("2d");fn((a,b,col)=>{x.fillStyle=col;x.fillRect(a,b,1,1)});return c.toDataURL()}
+const DRAW={
+ sword:p=>{for(let x=6;x<=13;x++){p(x,15-x,"#e8f1f8");p(x-1,15-x,"#9db3c6")}p(14,1,"#e8f1f8");[[3,8],[4,9],[5,10],[6,11],[7,12]].forEach(([a,b])=>p(a,b,"#d9a21b"));[[4,11],[3,12],[2,13]].forEach(([a,b])=>p(a,b,"#7a4a21"));p(1,14,"#d9a21b")},
+ axe:p=>{for(let i=2;i<=11;i++)p(i,15-i,"#7a4a21");[[9,2],[10,2],[11,2],[8,3],[9,3],[10,3],[11,3],[12,3],[9,4],[10,4],[11,4],[12,4],[13,4],[10,5],[11,5],[12,5],[13,5],[11,6],[12,6]].forEach(([a,b],k)=>p(a,b,k%3?"#aab4bf":"#d6dde4"))},
+ mace:p=>{for(let i=2;i<=9;i++)p(i,15-i,"#7a4a21");for(let a=9;a<=13;a++)for(let b=1;b<=5;b++)p(a,b,(a+b)%2?"#6b7480":"#8b95a1");[[11,0],[15,3],[8,3],[11,6]].forEach(([a,b])=>p(a,b,"#c8d0d8"))},
+ spearmace:p=>{for(let i=1;i<=11;i++)p(i,15-i,"#7a4a21");[[12,3],[13,2],[14,1],[12,2],[13,3],[15,0]].forEach(([a,b])=>p(a,b,"#e8f1f8"));for(let a=8;a<=10;a++)for(let b=7;b<=9;b++)p(a,b,(a+b)%2?"#6b7480":"#8b95a1")},
+ crystal:p=>{for(let a=0;a<16;a++)for(let b=0;b<16;b++){const d=Math.abs(a-7.5)+Math.abs(b-7.5);if(d<=6)p(a,b,d>5?"#6a1f8a":d>3?"#c04be0":d>1.5?"#e9a2f7":"#ffffff")}},
+ pot:p=>{p(7,1,"#7a4a21");p(8,1,"#7a4a21");[[7,2],[8,2],[7,3],[8,3]].forEach(([a,b])=>p(a,b,"#cfe6f0"));for(let a=3;a<=12;a++)for(let b=4;b<=14;b++){const d=Math.hypot(a-7.5,b-9.5);if(d<=4.6)p(a,b,d>3.7?"#cfe6f0":(b>8?"#e0434f":"#cfe6f0"))}},
+ smp:p=>{for(let a=2;a<14;a++)for(let b=3;b<15;b++){const n=(a*7+b*13)%5===0;p(a,b,b<6?(n?"#4f9d2f":"#6dbb45"):(n?"#6b4423":"#8a5a33"))}}
+};
+function ico(m){if(!DRAW[m])return null;ICONS[m]=ICONS[m]||mk(DRAW[m]);const i=document.createElement("img");i.src=ICONS[m];i.className="ic";i.alt="";return i}
+function badge(t,m){const s=document.createElement("span");s.className="badge t"+t[2]+(t[0]==="L"?" lt":"");s.textContent=t;if(m){const i=ico(m);if(i){s.prepend(i);s.title=m}}return s}
 
-$("ladder").append(...Object.keys(PTS).map(badge));
+$("ladder").append(...Object.keys(PTS).map(k=>badge(k)));
 $("fm").innerHTML=MODES.slice(1).map(m=>`<option value="${m[0]}">${m[1]}</option>`).join("");
 
 const tabs=$("tabs");
-MODES.forEach(([k,l])=>{const b=document.createElement("button");b.type="button";b.textContent=l;b.setAttribute("aria-pressed",k===mode);b.onclick=()=>{mode=k;[...tabs.children].forEach(c=>c.setAttribute("aria-pressed",c===b));render()};tabs.append(b)});
+MODES.forEach(([k,l])=>{const b=document.createElement("button");b.type="button";b.textContent=l;const ic=ico(k);if(ic)b.prepend(ic);b.setAttribute("aria-pressed",k===mode);b.onclick=()=>{mode=k;[...tabs.children].forEach(c=>c.setAttribute("aria-pressed",c===b));render()};tabs.append(b)});
 
 function render(){
   const list=PLAYERS.map(p=>{
@@ -105,7 +120,7 @@ function render(){
     const nm=document.createElement("span");nm.className="nm";nm.textContent=x.p.n;
     const rg=document.createElement("span");rg.className="rg";rg.textContent=x.p.r;
     const bd=document.createElement("div");bd.className="bd";
-    x.e.forEach(([m,t])=>{const b=badge(t);if(mode==="all")b.textContent=m+" "+t;bd.append(b)});
+    x.e.forEach(([m,t])=>bd.append(badge(t,m)));
     mid.append(nm,rg,bd);
     const pt=document.createElement("div");pt.className="pt";pt.textContent=x.pts;
     r.append(rk,mid,pt);box.append(r)
