@@ -120,7 +120,7 @@ function render(){
   list.forEach((x,i)=>{
     const r=document.createElement("div");r.className="row";
     const rk=document.createElement("div");rk.className="rk";rk.textContent=i+1;
-    const av=document.createElement("img");av.className="av";av.alt="";av.loading="lazy";av.src="https://mc-heads.net/avatar/"+encodeURIComponent(x.p.n)+"/64";av.onerror=()=>{av.style.visibility="hidden"};
+    const av=document.createElement("img");av.className="av";av.alt="";av.loading="lazy";av.src="https://minotar.net/avatar/"+encodeURIComponent(x.p.n)+"/64";av.onerror=()=>{av.style.visibility="hidden"};
     const mid=document.createElement("div");
     const nm=document.createElement("span");nm.className="nm";nm.textContent=x.p.n;
     const rg=document.createElement("span");rg.className="rg";rg.textContent=x.p.r||"";
